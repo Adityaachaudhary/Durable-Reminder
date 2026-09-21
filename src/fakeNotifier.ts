@@ -4,10 +4,9 @@ import { PermanentDeliveryError, TemporaryDeliveryError } from './notifier';
 import type { Notification } from './types';
 
 export interface Gate {
-  /** Resolves once the notifier has arrived at the gate. Lets a test wait without sleeping. */
+  
   reached: Promise<void>;
   open(): void;
-  /** Used by the notifier. */
   enter(): Promise<void>;
 }
 
@@ -40,7 +39,6 @@ export type FakeStep = 'ok' | 'temporary' | 'permanent' | 'lost_ack' | { gate: G
 export interface ReceivedNotification {
   notification: Notification;
   receivedAt: number | null;
-  /** How many times the destination was asked to deliver this key. The user still saw it once. */
   sendCount: number;
 }
 
@@ -58,7 +56,6 @@ export class FakeNotifier implements Notifier {
   constructor(
     private readonly options: {
       clock?: Clock;
-      /** Applied the first time each key is seen. Handy for the CLI (e.g. every key fails once). */
       defaultSteps?: FakeStep[];
       log?: (line: string) => void;
     } = {},

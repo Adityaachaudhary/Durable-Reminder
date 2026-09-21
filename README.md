@@ -114,4 +114,4 @@ test/                        time, service, worker, restart, store guards, REST,
 ```
 
 Design decisions, trade-offs, requirement and acceptance-scenario coverage, and the AI-usage disclosure are in
-[`SUBMISSION.md`](SUBMISSION.md). A recording script for the demo video is in [`DEMO.md`](DEMO.md).
+[`SUBMISSION.md`](SUBMISSION.md). 

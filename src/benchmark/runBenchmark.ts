@@ -148,7 +148,7 @@ async function runPass(): Promise<PassResult> {
       if (clock.now() < target) clock.set(target);
     };
 
-    // ---------------------------------------------------------------- phase 1: service running
+    //phase 1: service running
     let sys = boot('service-1');
     for (const spec of SPECS) {
       sys.service.create({ id: spec.id, content: `Reminder ${spec.id}`, timeZone: spec.zone, at: spec.at });
@@ -164,19 +164,19 @@ async function runPass(): Promise<PassResult> {
     sys.service.cancel('c-2');
     await runTo(sys, STOP_AT);
 
-    // ---------------------------------------------------------------- phase 2: service stopped, work becomes overdue
+    //phase 2: service stopped, work becomes overdue
     sys.worker.stop();
     sys.store.close();
     clock.set(RESTART_AT);
 
-    // ---------------------------------------------------------------- phase 3: restart
+    //phase 3: restart
     sys = boot('service-2');
     const overdueAtRestart = sys.store.listItems({ state: 'scheduled' }).filter((i) => (i.nextAttemptAt ?? i.scheduledAt) <= clock.now()).length;
     if (overdueAtRestart === 0) violate('restart', 'nothing was overdue at restart, so recovery was not exercised');
     sys.service.cancel('c-3'); // cancelled while overdue, before the restarted worker's first pass
     await runTo(sys, at('2026-03-08T09:29:59Z'));
 
-    // duplicate execution: worker A is stuck in send(), its lease expires, worker B takes over, then A wakes up
+    //duplicate execution: worker A is stuck in send(), its lease expires, worker B takes over, then A wakes up
     clock.set(at('2026-03-08T09:30:00Z'));
     const workerB = new Worker({ store: sys.store, notifier, clock, workerId: 'service-2-worker-b', onError: (e) => errors.push(e) });
     const gate = createGate();
@@ -191,7 +191,7 @@ async function runPass(): Promise<PassResult> {
     const { settled } = await advanceUntilSettled({ clock, worker: sys.worker, store: sys.store });
     if (!settled) violate('run', 'processing did not settle');
 
-    // ---------------------------------------------------------------- verification against persisted state
+    //verification against persisted state
     const items = sys.store.listItems();
     const deliveries = sys.store.listDeliveries();
     const deliveredIds = new Set<string>();
@@ -216,14 +216,14 @@ async function runPass(): Promise<PassResult> {
       }
       if (revisions.length !== item.version) violate(spec.id, `expected ${item.version} revisions, found ${revisions.length}`);
 
-      // attempt history is complete, ordered and resolved
+      //attempt history is complete, ordered and resolved
       attempts.forEach((a, i) => {
         if (a.seq !== i + 1) violate(spec.id, 'attempt sequence has gaps');
         if (a.finishedAt === null || a.outcome === 'in_flight') violate(spec.id, `attempt ${a.seq} was never resolved`);
         if (i > 0 && a.claimedAt < attempts[i - 1]!.claimedAt) violate(spec.id, 'attempts are out of time order');
       });
 
-      // superseded versions never produced a notification
+      //superseded versions never produced a notification
       for (let v = 1; v < item.version; v++) {
         if (notifier.received.has(deliveryKeyOf(spec.id, v))) violate(spec.id, `superseded version ${v} produced a notification`);
         if (sys.store.getDelivery(deliveryKeyOf(spec.id, v))) violate(spec.id, `superseded version ${v} has a delivery record`);
@@ -248,13 +248,13 @@ async function runPass(): Promise<PassResult> {
       signature.push([spec.id, item.state, item.version, item.terminalReason, attempts.map((a) => [a.version, a.occurrenceAttempt, a.workerId, a.outcome, a.claimedAt]), record ? [record.deliveryKey, record.deliveredAt] : null]);
     }
 
-    // global exactly-once accounting
+    //global exactly-once accounting
     if (items.some((i) => i.state === 'scheduled' || i.state === 'running')) violate('run', 'some items did not reach a terminal state');
     if (notifier.received.size !== deliveredIds.size) violate('run', `destination saw ${notifier.received.size} logical notifications for ${deliveredIds.size} delivered items`);
     if (deliveries.length !== deliveredIds.size) violate('run', `${deliveries.length} delivery records for ${deliveredIds.size} delivered items`);
     if (errors.length > 0) violate('run', `${errors.length} internal error(s) reported`);
 
-    // scenario-specific proofs
+    //scenario-specific proofs
     const dupSendCalls = notifier.sendCount('d-1:v1');
     if (dupSendCalls < 2) violate('d-1', 'duplicate execution did not actually reach the destination twice');
     if (notifier.sendCount('l-1:v1') !== 2) violate('l-1', 'lost acknowledgement should cause exactly one retry');
@@ -285,7 +285,7 @@ async function runPass(): Promise<PassResult> {
   } finally {
     for (const store of stores) {
       try {
-        store.close(); // Windows cannot delete a database file that is still open
+        store.close(); //Windows cannot delete a database file that is still open
       } catch {
         /* already closed */
       }
@@ -296,7 +296,8 @@ async function runPass(): Promise<PassResult> {
 
 export async function runBenchmark(): Promise<BenchmarkReport> {
   const first = await runPass();
-  const second = await runPass(); // the whole scenario again: results must be identical
+  const second = await runPass(); 
+  
   const repeatable = first.digest === second.digest;
   const violations = [...first.report.violations, ...second.report.violations];
   return { ...first.report, violations, digests: [first.digest, second.digest], repeatable, passed: violations.length === 0 && repeatable };

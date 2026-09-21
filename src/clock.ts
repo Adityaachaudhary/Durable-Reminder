@@ -39,7 +39,7 @@ export class ManualClock implements Clock {
     return this.current;
   }
 
-  /** Jumps forward without firing timers (fine when nothing uses timers, e.g. explicit `worker.tick()`). */
+  /** Jumps forward without firing timers (fine when nothing uses timers). */
   set(ms: number): void {
     if (ms < this.current) throw new RangeError(`clock cannot move backwards (${ms} < ${this.current})`);
     this.current = ms;
