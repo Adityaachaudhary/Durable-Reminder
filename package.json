@@ -1,0 +1,31 @@
+{
+  "name": "durable-reminders",
+  "version": "1.0.0",
+  "description": "Durable reminders and scheduled follow-ups that stay correct across restarts, retries, edits and cancellations.",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.1",
+    "@js-temporal/polyfill": "^0.5.1",
+    "hono": "^4.13.8"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "tsx": "^4.23.14",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "benchmark": "tsx src/benchmark/main.ts",
+    "demo": "tsx src/cli.ts demo",
+    "rest-demo": "tsx src/restDemo.ts",
+    "serve": "tsx src/cli.ts serve",
+    "cli": "tsx src/cli.ts",
+    "verify": "npm run typecheck && npm test && npm run benchmark"
+  }
+}
